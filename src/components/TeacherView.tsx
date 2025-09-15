@@ -126,21 +126,57 @@ export default async function TeacherView() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 shadow-xl border border-white/10">
-            <p className="text-sm text-gray-300 mb-1">My Classrooms</p>
-            <p className="text-3xl font-bold text-blue-400">{teacherClassrooms.length}</p>
+          <div className="bg-gradient-to-br from-blue-400/20 to-blue-600/20 backdrop-blur-lg rounded-2xl p-6 border border-blue-300/30 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-blue-100">My Classrooms</p>
+                <p className="text-3xl font-bold text-white">{teacherClassrooms.length}</p>
+              </div>
+              <div className="w-10 h-10 bg-blue-400 rounded-lg flex items-center justify-center shadow-lg">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+            </div>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 shadow-xl border border-white/10">
-            <p className="text-sm text-gray-300 mb-1">Total Students</p>
-            <p className="text-3xl font-bold text-emerald-400">{totalStudents}</p>
+          <div className="bg-gradient-to-br from-emerald-400/20 to-emerald-600/20 backdrop-blur-lg rounded-2xl p-6 border border-emerald-300/30 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-emerald-100">Total Students</p>
+                <p className="text-3xl font-bold text-white">{totalStudents}</p>
+              </div>
+              <div className="w-10 h-10 bg-emerald-400 rounded-lg flex items-center justify-center shadow-lg">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                </svg>
+              </div>
+            </div>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 shadow-xl border border-white/10">
-            <p className="text-sm text-gray-300 mb-1">Progress Reports</p>
-            <p className="text-3xl font-bold text-purple-400">{progress?.length || 0}</p>
+          <div className="bg-gradient-to-br from-purple-400/20 to-purple-600/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-300/30 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-purple-100">Progress Reports</p>
+                <p className="text-3xl font-bold text-white">{progress?.length || 0}</p>
+              </div>
+              <div className="w-10 h-10 bg-purple-400 rounded-lg flex items-center justify-center shadow-lg">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+            </div>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 shadow-xl border border-white/10">
-            <p className="text-sm text-gray-300 mb-1">Class Average</p>
-            <p className="text-3xl font-bold text-orange-400">{averageGrade}%</p>
+          <div className="bg-gradient-to-br from-orange-400/20 to-orange-600/20 backdrop-blur-lg rounded-2xl p-6 border border-orange-300/30 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-orange-100">Class Average</p>
+                <p className="text-3xl font-bold text-white">{averageGrade}%</p>
+              </div>
+              <div className="w-10 h-10 bg-orange-400 rounded-lg flex items-center justify-center shadow-lg">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import ClassroomManagement from './ClassroomManagement'
+import RoleManagement from './RoleManagement'
 
 type ProgressRecord = {
   id: string
@@ -293,75 +294,80 @@ export default async function HeadTeacherView() {
         />
       </div>
 
+      {/* Role Management */}
+      <div className="bg-white/20 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/30 p-6">
+        <RoleManagement users={allProfiles || []} />
+      </div>
+
       {/* Progress Reports Table */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-        <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+      <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+        <div className="px-8 py-6 bg-white/5 border-b border-white/20">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-gray-500 rounded-lg flex items-center justify-center mr-3">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-500 rounded-xl flex items-center justify-center mr-4 shadow-xl">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-800">All Progress Reports</h3>
+            <h3 className="text-xl font-bold text-white">All Progress Reports</h3>
           </div>
         </div>
         
         {!progress || progress.length === 0 ? (
           <div className="p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h4 className="text-lg font-semibold text-gray-600 mb-2">No Progress Reports</h4>
-            <p className="text-gray-500 mb-1">No progress reports found in your school.</p>
+            <h4 className="text-lg font-semibold text-gray-200 mb-2">No Progress Reports</h4>
+            <p className="text-gray-300 mb-1">No progress reports found in your school.</p>
             <p className="text-sm text-gray-400">Teachers can add progress reports from their dashboard.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+            <table className="min-w-full">
+              <thead className="bg-white/5">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-200 uppercase tracking-wider">
                     Student
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-200 uppercase tracking-wider">
                     Classroom
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-200 uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-200 uppercase tracking-wider">
                     Grade
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-200 uppercase tracking-wider">
                     Feedback
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white/50 backdrop-blur-sm divide-y divide-gray-200">
+              <tbody className="divide-y divide-white/10">
                 {progress.map((report) => (
-                  <tr key={report.id} className="hover:bg-white/70 transition-colors duration-150">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <tr key={report.id} className="hover:bg-white/5 transition-colors duration-200">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                       {report.profiles?.full_name || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {report.classrooms?.name || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {new Date(report.report_date).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                        report.grade >= 90 ? 'bg-green-100 text-green-800 border border-green-200' :
-                        report.grade >= 80 ? 'bg-blue-100 text-blue-800 border border-blue-200' :
-                        report.grade >= 70 ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
-                        'bg-red-100 text-red-800 border border-red-200'
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+                        report.grade >= 90 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/30' :
+                        report.grade >= 80 ? 'bg-blue-500/20 text-blue-400 border border-blue-400/30' :
+                        report.grade >= 70 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-400/30' :
+                        'bg-red-500/20 text-red-400 border border-red-400/30'
                       }`}>
                         {report.grade}%
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 max-w-xs truncate">
+                    <td className="px-6 py-4 text-sm text-gray-300 max-w-xs truncate">
                       {report.feedback || 'No feedback provided'}
                     </td>
                   </tr>
