@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 
 type ProgressReport = {
+  id: string
   report_date: string
   grade: number
   feedback: string | null
@@ -10,68 +11,140 @@ type ProgressReport = {
 }
 
 export default async function StudentView() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    return <div className="text-red-600">Not authenticated</div>
+  }
+
+  // Fetch student's own progress reports
   const { data: progress, error } = await supabase
     .from('progress')
-    .select(
-      `
+    .select(`
+      id,
       report_date,
       grade,
       feedback,
       classrooms (
         name
       )
-    `
-    )
+    `)
+    .eq('student_id', user.id)
+    .order('report_date', { ascending: false })
     .returns<ProgressReport[]>()
 
   if (error) {
     console.error('Error fetching progress:', error)
-    return <p>Could not fetch progress reports.</p>
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p className="text-red-700 font-medium">Could not fetch progress reports.</p>
+        <p className="text-red-600 text-sm mt-1">Error: {error.message}</p>
+      </div>
+    )
   }
 
+  // Calculate average grade
+  const averageGrade = progress.length > 0 
+    ? Math.round(progress.reduce((sum, report) => sum + report.grade, 0) / progress.length)
+    : 0
+
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Your Progress</h2>
+    <div className="space-y-8">
+      <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8">
+        <div className="flex items-center mb-6">
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-xl flex items-center justify-center mr-4 shadow-xl">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-1">Your Academic Progress</h2>
+            <p className="text-gray-200">Track your learning journey</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 shadow-xl border border-white/10">
+            <p className="text-sm text-gray-300 mb-1">Total Reports</p>
+            <p className="text-3xl font-bold text-cyan-400">{progress.length}</p>
+          </div>
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 shadow-xl border border-white/10">
+            <p className="text-sm text-gray-300 mb-1">Average Grade</p>
+            <p className="text-3xl font-bold text-emerald-400">{averageGrade}%</p>
+          </div>
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 shadow-xl border border-white/10">
+            <p className="text-sm text-gray-300 mb-1">Latest Grade</p>
+            <p className="text-3xl font-bold text-purple-400">
+              {progress.length > 0 ? `${progress[0].grade}%` : 'N/A'}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {progress.length === 0 ? (
-        <p>No progress reports found.</p>
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8">
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-200 mb-2">No Progress Reports Yet</h3>
+            <p className="text-gray-300">Your teachers haven't added any progress reports yet. Check back later!</p>
+          </div>
+        </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Classroom
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Grade
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Feedback
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {progress.map((report, index) => (
-                <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {report.classrooms?.name || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {new Date(report.report_date).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{report.grade}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {report.feedback}
-                  </td>
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="px-8 py-6 bg-white/5 border-b border-white/20">
+            <h3 className="text-xl font-bold text-white">Progress Reports</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-white/5">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-200 uppercase tracking-wider">
+                    Classroom
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-200 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-200 uppercase tracking-wider">
+                    Grade
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-200 uppercase tracking-wider">
+                    Feedback
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-white/10">
+                {progress.map((report) => (
+                  <tr key={report.id} className="hover:bg-white/5 transition-colors duration-200">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                      {report.classrooms?.name || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      {new Date(report.report_date).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+                        report.grade >= 90 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/30' :
+                        report.grade >= 80 ? 'bg-blue-500/20 text-blue-400 border border-blue-400/30' :
+                        report.grade >= 70 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-400/30' :
+                        'bg-red-500/20 text-red-400 border border-red-400/30'
+                      }`}>
+                        {report.grade}%
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-300">
+                      {report.feedback || 'No feedback provided'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

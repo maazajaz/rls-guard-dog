@@ -54,76 +54,94 @@ export default function AddProgressForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg">
-      <h3 className="text-lg font-medium">Add Progress Report</h3>
-      <div>
-        <label htmlFor="student" className="block text-sm font-medium">
-          Student
-        </label>
-        <select
-          id="student"
-          value={studentId}
-          onChange={(e) => setStudentId(e.target.value)}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-        >
-          <option value="">Select a student</option>
-          {students.map((student) => (
-            <option key={student.id} value={student.id}>
-              {student.full_name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="classroom" className="block text-sm font-medium">
-          Classroom
-        </label>
-        <select
-          id="classroom"
-          value={classroomId}
-          onChange={(e) => setClassroomId(e.target.value)}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-        >
-          <option value="">Select a classroom</option>
-          {classrooms.map((classroom) => (
-            <option key={classroom.id} value={classroom.id}>
-              {classroom.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="grade" className="block text-sm font-medium">
-          Grade
-        </label>
-        <input
-          type="number"
-          id="grade"
-          value={grade}
-          onChange={(e) => setGrade(e.target.value)}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-        />
-      </div>
-      <div>
-        <label htmlFor="feedback" className="block text-sm font-medium">
-          Feedback
-        </label>
-        <textarea
-          id="feedback"
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-        />
-      </div>
-      <button
-        type="submit"
-        className="px-4 py-2 bg-blue-500 text-white rounded-md"
-      >
-        Add Report
-      </button>
-    </form>
+    <div className="space-y-6">
+      {students.length === 0 || classrooms.length === 0 ? (
+        <div className="bg-yellow-500/20 backdrop-blur-sm border border-yellow-400/30 rounded-xl p-6">
+          <p className="text-yellow-300 font-semibold mb-2">Cannot add progress reports yet</p>
+          <p className="text-yellow-200 text-sm">
+            {students.length === 0 && "No students found. "}
+            {classrooms.length === 0 && "No classrooms assigned. "}
+            Contact your head teacher to set up classrooms and student assignments.
+          </p>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-6 p-6 border border-white/10 rounded-xl bg-white/5 backdrop-blur-sm">
+          <div>
+            <label htmlFor="student" className="block text-sm font-semibold text-gray-200 mb-2">
+              Student
+            </label>
+            <select
+              id="student"
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+              required
+              className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200 bg-white/10 backdrop-blur-sm text-white"
+            >
+              <option value="" className="bg-gray-800 text-gray-200">Select a student</option>
+              {students.map((student) => (
+                <option key={student.id} value={student.id} className="bg-gray-800 text-gray-200">
+                  {student.full_name || 'Unnamed Student'}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="classroom" className="block text-sm font-semibold text-gray-200 mb-2">
+              Classroom
+            </label>
+            <select
+              id="classroom"
+              value={classroomId}
+              onChange={(e) => setClassroomId(e.target.value)}
+              required
+              className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200 bg-white/10 backdrop-blur-sm text-white"
+            >
+              <option value="" className="bg-gray-800 text-gray-200">Select a classroom</option>
+              {classrooms.map((classroom) => (
+                <option key={classroom.id} value={classroom.id} className="bg-gray-800 text-gray-200">
+                  {classroom.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="grade" className="block text-sm font-semibold text-gray-200 mb-2">
+              Grade (0-100)
+            </label>
+            <input
+              type="number"
+              id="grade"
+              value={grade}
+              onChange={(e) => setGrade(e.target.value)}
+              min="0"
+              max="100"
+              required
+              className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300"
+              placeholder="Enter grade (0-100)"
+            />
+          </div>
+          <div>
+            <label htmlFor="feedback" className="block text-sm font-semibold text-gray-200 mb-2">
+              Feedback (optional)
+            </label>
+            <textarea
+              id="feedback"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              rows={3}
+              className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200 bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 resize-none"
+              placeholder="Enter feedback for the student..."
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={!studentId || !classroomId || !grade}
+            className="w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl hover:from-purple-600 hover:to-pink-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5 font-semibold"
+          >
+            Add Progress Report
+          </button>
+        </form>
+      )}
+    </div>
   )
 }

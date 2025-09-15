@@ -58,7 +58,19 @@ export async function middleware(request: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  if (!session && request.nextUrl.pathname !== '/login') {
+  const { pathname } = request.nextUrl
+
+  // Scenario 1: Authenticated user tries to visit /login, /signup, or /
+  if (session && (pathname === '/login' || pathname === '/signup' || pathname === '/')) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
+  // Scenario 2: Unauthenticated user tries to visit any other protected page
+  // Exclude /login, /signup, and /auth/callback from redirection
+  const protectedPaths = ['/dashboard', '/teacher'] // Add other protected paths here
+  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
+
+  if (!session && isProtectedPath) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -66,14 +78,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
-    '/((?!_next/static|_next/image|favicon.ico|auth/callback).*)',
-  ],
+  matcher: ['/', '/login', '/signup', '/dashboard', '/teacher', '/auth/callback'],
 }
