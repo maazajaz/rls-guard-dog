@@ -93,7 +93,7 @@ export default function ClassroomManagement({ teachers, classrooms }: ClassroomM
 
       if (error) {
         console.error('Error assigning teacher:', error)
-        alert('Failed to assign teacher: ' + error.message)
+        if (error.code === '23505') { alert(' Teacher Already Assigned!\n\nThis teacher is already assigned to this classroom. Each teacher can only be assigned to a classroom once.') } else { alert('Failed to assign teacher: ' + error.message) }
       } else {
         setSelectedTeacher('')
         setSelectedClassroom('')

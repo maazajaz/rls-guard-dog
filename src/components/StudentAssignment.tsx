@@ -44,7 +44,7 @@ export default function StudentAssignment({ students, teacherClassrooms }: Stude
       if (error) {
         console.error('Error assigning student:', error)
         if (error.code === '23505') {
-          alert('This student is already assigned to this classroom.')
+          alert(' Student Already Assigned!\n\nThis student is already assigned to this classroom. Each student can only be assigned to a classroom once.')
         } else {
           alert('Failed to assign student: ' + error.message)
         }
@@ -52,7 +52,7 @@ export default function StudentAssignment({ students, teacherClassrooms }: Stude
         setSelectedStudent('')
         setSelectedClassroom('')
         router.refresh()
-        alert('Student successfully assigned to classroom!')
+        alert(' Success!\n\nStudent successfully assigned to classroom!')
       }
     } catch (error) {
       console.error('Error:', error)
