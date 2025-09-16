@@ -1,0 +1,1 @@
+﻿interface Props { schoolId: string; showSchoolStats?: boolean; classroomIds?: string[]; } export default function ClassAveragesSupabase(props: Props) { return <div>Class Averages for School: {props.schoolId}</div>; }

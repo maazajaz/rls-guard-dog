@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import ClassroomManagement from './ClassroomManagement'
 import RoleManagement from './RoleManagement'
-import ClassAverages from './ClassAverages'
-import AddTestProgress from './AddTestProgress'
+import ClassAveragesSupabase from './ClassAveragesSupabase'
+
 
 type ProgressRecord = {
   id: string
@@ -216,7 +216,7 @@ export default async function HeadTeacherView() {
       </div>
 
       {/* Test Progress Section */}
-      <AddTestProgress />
+      
 
       {/* School Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -305,7 +305,7 @@ export default async function HeadTeacherView() {
       </div>
 
       {/* MongoDB Class Averages */}
-      <ClassAverages 
+      <ClassAveragesSupabase 
         schoolId={headTeacherProfile.school_id} 
         showSchoolStats={true}
       />
