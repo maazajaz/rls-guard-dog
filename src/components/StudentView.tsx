@@ -18,8 +18,8 @@ export default function StudentView() {
   const [progress, setProgress] = useState<ProgressReport[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [user, setUser] = useState<any>(null)
-  const [studentProfile, setStudentProfile] = useState<any>(null)
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null)
+  const [studentProfile, setStudentProfile] = useState<{ id: string; full_name: string | null; school_id: string | null } | null>(null)
 
   const supabase = createClient()
 
@@ -40,7 +40,7 @@ export default function StudentView() {
         // Get student's profile and school_id
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('school_id')
+          .select('id, full_name, school_id')
           .eq('id', user.id)
           .single()
 
@@ -75,14 +75,14 @@ export default function StudentView() {
         }
 
         setLoading(false)
-      } catch (err) {
+      } catch {
         setError('An unexpected error occurred')
         setLoading(false)
       }
     }
 
     fetchData()
-  }, [])
+  }, [supabase])
 
   if (loading) {
     return (
@@ -235,10 +235,12 @@ export default function StudentView() {
       )}
 
       {/* Student Enrollment Request */}
-      <StudentEnrollmentRequest 
-        studentId={user.id}
-        schoolId={studentProfile.school_id}
-      />
+      {studentProfile?.school_id && (
+        <StudentEnrollmentRequest 
+          studentId={user.id}
+          schoolId={studentProfile.school_id}
+        />
+      )}
     </div>
   )
 }

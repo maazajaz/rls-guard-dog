@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 type Classroom = {
@@ -22,7 +22,7 @@ type EnrollmentRequest = {
   created_at: string
   classrooms: {
     name: string
-  } | null
+  }[] | null
 }
 
 export default function StudentEnrollmentRequest({ 
@@ -41,15 +41,10 @@ export default function StudentEnrollmentRequest({
 
   const supabase = createClient()
 
-  useEffect(() => {
-    fetchAvailableClassrooms()
-    fetchEnrollmentRequests()
-  }, [])
-
-  const fetchAvailableClassrooms = async () => {
+  const fetchAvailableClassrooms = useCallback(async () => {
     try {
       // Get classrooms student is already enrolled in
-      const { data: enrolledClassrooms, error: enrolledError } = await supabase
+      const { data: enrolledClassrooms } = await supabase
         .from('student_classrooms')
         .select('classroom_id')
         .eq('student_id', studentId)
@@ -57,16 +52,16 @@ export default function StudentEnrollmentRequest({
       const enrolledIds = enrolledClassrooms?.map(ec => ec.classroom_id) || []
 
       // Get pending requests to exclude them too (handle if table doesn't exist)
-      let pendingRequests: any[] = []
+      let pendingRequests: { classroom_id: string }[] = []
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('enrollment_requests')
           .select('classroom_id')
           .eq('student_id', studentId)
           .eq('status', 'pending')
         
         pendingRequests = data || []
-      } catch (err) {
+      } catch {
         // Table might not exist yet, continue without it
       }
 
@@ -74,7 +69,7 @@ export default function StudentEnrollmentRequest({
       const excludeIds = [...enrolledIds, ...pendingIds]
 
       // Get all classrooms in the school first
-      const { data: allClassrooms, error: allClassroomsError } = await supabase
+      const { data: allClassrooms } = await supabase
         .from('classrooms')
         .select(`
           id,
@@ -113,11 +108,11 @@ export default function StudentEnrollmentRequest({
     } catch (error) {
       console.error('Error fetching available classrooms:', error)
     }
-  }
+  }, [studentId, schoolId, supabase])
 
-  const fetchEnrollmentRequests = async () => {
+  const fetchEnrollmentRequests = useCallback(async () => {
     try {
-      let requests: any[] = []
+      let requests: EnrollmentRequest[] = []
       try {
         const { data } = await supabase
           .from('enrollment_requests')
@@ -135,16 +130,21 @@ export default function StudentEnrollmentRequest({
           .eq('student_id', studentId)
           .order('created_at', { ascending: false })
 
-        requests = data || []
-      } catch (err) {
+        requests = (data || []) as EnrollmentRequest[]
+      } catch {
         // Table might not exist yet
       }
 
-      setEnrollmentRequests(requests as unknown as EnrollmentRequest[])
+      setEnrollmentRequests(requests as EnrollmentRequest[])
     } catch (error) {
       console.error('Error fetching enrollment requests:', error)
     }
-  }
+  }, [studentId, supabase])
+
+  useEffect(() => {
+    fetchAvailableClassrooms()
+    fetchEnrollmentRequests()
+  }, [fetchAvailableClassrooms, fetchEnrollmentRequests])
 
   const submitEnrollmentRequest = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -188,10 +188,10 @@ export default function StudentEnrollmentRequest({
           // Clear success message after 3 seconds
           setTimeout(() => setMessage(''), 3000)
         }
-      } catch (tableError) {
+      } catch {
         setMessage('Enrollment requests feature is not available yet. Please contact your teacher directly.')
       }
-    } catch (error) {
+    } catch {
       setMessage('Error submitting request. Please try again.')
     }
     
@@ -317,7 +317,7 @@ export default function StudentEnrollmentRequest({
               <div key={request.id} className="bg-white/5 rounded-xl p-6 border border-white/10">
                 <div className="flex justify-between items-start mb-3">
                   <h4 className="text-lg font-semibold text-white">
-                    {request.classrooms?.name || 'Unknown Classroom'}
+                    {request.classrooms?.[0]?.name || 'Unknown Classroom'}
                   </h4>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(request.status)}`}>
                     {request.status.charAt(0).toUpperCase() + request.status.slice(1)}

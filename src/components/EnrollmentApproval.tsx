@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 type EnrollmentRequest = {
@@ -36,11 +36,7 @@ export default function EnrollmentApproval({
 
   const supabase = createClient()
 
-  useEffect(() => {
-    fetchPendingRequests()
-  }, [])
-
-  const fetchPendingRequests = async () => {
+  const fetchPendingRequests = useCallback(async () => {
     try {
       if (classrooms.length === 0) {
         setLoading(false)
@@ -79,7 +75,11 @@ export default function EnrollmentApproval({
     } finally {
       setLoading(false)
     }
-  }
+  }, [classrooms, supabase, teacherId])
+
+  useEffect(() => {
+    fetchPendingRequests()
+  }, [fetchPendingRequests])
 
   const handleApproval = async (requestId: string, action: 'approved' | 'rejected', response?: string) => {
     setProcessingId(requestId)
@@ -102,7 +102,8 @@ export default function EnrollmentApproval({
         // Clear success message after 3 seconds
         setTimeout(() => setMessage(''), 3000)
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Error processing request:', err)
       setMessage('Error processing request. Please try again.')
     } finally {
       setProcessingId(null)
@@ -244,7 +245,7 @@ function RequestCard({
 
       {request.request_message && (
         <div className="mb-4">
-          <p className="text-gray-400 text-sm font-medium mb-2">Student's message:</p>
+          <p className="text-gray-400 text-sm font-medium mb-2">Student&apos;s message:</p>
           <p className="text-gray-300 text-sm bg-white/5 p-3 rounded-lg">
             {request.request_message}
           </p>
