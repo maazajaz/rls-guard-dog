@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import AddProgressForm from './AddProgressForm'
 import StudentAssignment from './StudentAssignment'
+import ClassAverages from './ClassAverages'
 
 type ProgressRecord = {
   id: string
@@ -35,6 +36,17 @@ export default async function TeacherView() {
   
   if (!user) {
     return <div className="text-red-600">Not authenticated</div>
+  }
+
+  // Get teacher's profile and school_id
+  const { data: teacherProfile } = await supabase
+    .from('profiles')
+    .select('school_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!teacherProfile) {
+    return <div className="text-red-600">Profile not found</div>
   }
 
   // Get teacher's classrooms - fix the data structure
@@ -196,6 +208,13 @@ export default async function TeacherView() {
           )}
         </div>
       </div>
+
+      {/* MongoDB Class Averages for Teacher's Classrooms */}
+      <ClassAverages 
+        schoolId={teacherProfile.school_id}
+        classroomIds={teacherClassrooms.map(c => c.id)}
+        showSchoolStats={false}
+      />
 
       {/* Student Assignment */}
       <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8">

@@ -42,7 +42,12 @@ export default function AddProgressForm({
 
     if (error) {
       console.error('Error inserting progress:', error)
+      alert('Error adding progress report. Please try again.')
     } else {
+      console.log('✅ Progress report added successfully!')
+      console.log('🔔 This should trigger automatic class average calculation...')
+      alert('Progress report added! Class averages will update automatically.')
+      
       // Refresh the page to show the new progress report
       router.refresh()
       // Reset form
