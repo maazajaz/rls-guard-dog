@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { mongoService } from '@/lib/mongodb'
 import { createClient } from '@/lib/supabase/server'
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Verify user authentication and role
     const supabase = await createClient()

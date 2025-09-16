@@ -30,9 +30,15 @@ export default async function TeacherPage() {
 
   // Extract unique students from the progress records
   const studentsMap = new Map<string, Student>()
-  progressRecords?.forEach((record: any) => {
-    if (record.profiles) {
-      studentsMap.set(record.profiles.id, record.profiles)
+  progressRecords?.forEach((record) => {
+    if (record.profiles && Array.isArray(record.profiles)) {
+      record.profiles.forEach((profile) => {
+        const student: Student = {
+          id: profile.id,
+          full_name: profile.full_name
+        }
+        studentsMap.set(profile.id, student)
+      })
     }
   })
   const students = Array.from(studentsMap.values())
@@ -48,7 +54,14 @@ export default async function TeacherPage() {
     return <p>Could not fetch classrooms.</p>
   }
 
-  const classrooms = teacherClassrooms.map((tc: any) => tc.classrooms).flat();
+  interface TeacherClassroom {
+    classrooms: Array<{
+      id: string
+      name: string
+    }>
+  }
+
+  const classrooms = teacherClassrooms.map((tc: TeacherClassroom) => tc.classrooms).flat();
 
 
   const addProgress = async (formData: FormData) => {
@@ -130,7 +143,7 @@ export default async function TeacherPage() {
                 className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-200 bg-white/10 backdrop-blur-sm text-white"
               >
                 <option value="" className="bg-gray-800 text-gray-200">Select a classroom</option>
-                {classrooms.map((classroom: any) => (
+                {classrooms.map((classroom: { id: string; name: string }) => (
                   <option key={classroom.id} value={classroom.id} className="bg-gray-800 text-gray-200">
                     {classroom.name}
                   </option>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ClassroomAverage } from '@/lib/mongodb'
 
 interface ClassAveragesProps {
@@ -9,20 +9,47 @@ interface ClassAveragesProps {
   showSchoolStats?: boolean
 }
 
+interface SchoolStats {
+  total_students: number
+  total_classrooms: number
+  overall_average: number
+  total_reports: number
+}
+
 export default function ClassAverages({ schoolId, classroomIds, showSchoolStats = true }: ClassAveragesProps) {
   const [averages, setAverages] = useState<ClassroomAverage[]>([])
-  const [schoolStats, setSchoolStats] = useState<any>(null)
+  const [schoolStats, setSchoolStats] = useState<SchoolStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasAttemptedAutoSync, setHasAttemptedAutoSync] = useState(false)
 
-  useEffect(() => {
-    setHasAttemptedAutoSync(false) // Reset flag when dependencies change
-    fetchAverages()
-  }, [schoolId, classroomIds])
+  const autoSyncFromEdgeFunction = useCallback(async () => {
+    try {
+      console.log('🔄 Auto-syncing from Edge Function...')
+      
+      const response = await fetch('/api/sync-class-averages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
 
-  const fetchAverages = async () => {
+      if (response.ok) {
+        console.log('✅ Auto-sync successful')
+        // Return success, calling component will handle refresh
+        return true
+      } else {
+        console.log('❌ Auto-sync failed')
+        return false
+      }
+    } catch (error) {
+      console.error('❌ Auto-sync error:', error)
+      return false
+    }
+  }, [])
+
+  const fetchAverages = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch('/api/class-averages', {
@@ -50,8 +77,14 @@ export default function ClassAverages({ schoolId, classroomIds, showSchoolStats 
       if ((!data.averages || data.averages.length === 0) && !hasAttemptedAutoSync) {
         console.log('No class averages found, attempting one-time auto-sync...')
         setHasAttemptedAutoSync(true)
-        setTimeout(() => {
-          autoSyncFromEdgeFunction()
+        setTimeout(async () => {
+          const success = await autoSyncFromEdgeFunction()
+          if (success) {
+            // Refresh after successful sync
+            setTimeout(() => {
+              fetchAverages()
+            }, 1000)
+          }
         }, 1000)
       } else if (data.averages && data.averages.length > 0) {
         console.log(`✅ Found ${data.averages.length} class averages`)
@@ -62,36 +95,12 @@ export default function ClassAverages({ schoolId, classroomIds, showSchoolStats 
     } finally {
       setLoading(false)
     }
-  }
+  }, [schoolId, classroomIds, showSchoolStats, hasAttemptedAutoSync, autoSyncFromEdgeFunction])
 
-  const autoSyncFromEdgeFunction = async () => {
-    try {
-      console.log('🔄 Auto-syncing from Edge Function...')
-      
-      const response = await fetch('/api/sync-class-averages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        console.log('✅ Auto-sync successful:', data)
-        
-        // Refresh the averages after auto-syncing
-        setTimeout(() => {
-          setHasAttemptedAutoSync(false) // Reset flag for next manual attempt
-          fetchAverages()
-        }, 500)
-      } else {
-        console.log('⚠️ Auto-sync failed, user can use manual sync button')
-      }
-    } catch (err) {
-      console.log('⚠️ Auto-sync error:', err)
-      // Fail silently, user can use manual sync button
-    }
-  }
+  useEffect(() => {
+    setHasAttemptedAutoSync(false) // Reset flag when dependencies change
+    fetchAverages()
+  }, [schoolId, classroomIds, fetchAverages])
 
   const syncWithEdgeFunction = async () => {
     try {

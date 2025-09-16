@@ -137,7 +137,7 @@ export default async function HeadTeacherView() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-white mb-1">Head Teacher Dashboard</h2>
-            <p className="text-gray-200">Manage your school's classrooms and monitor academic progress</p>
+            <p className="text-gray-200">Manage your school&apos;s classrooms and monitor academic progress</p>
           </div>
         </div>
         

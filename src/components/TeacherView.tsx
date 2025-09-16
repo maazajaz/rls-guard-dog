@@ -23,11 +23,6 @@ type Classroom = {
   name: string
 }
 
-type Student = {
-  id: string
-  full_name: string | null
-}
-
 export default async function TeacherView() {
   const supabase = await createClient()
 
@@ -90,7 +85,11 @@ export default async function TeacherView() {
   }
 
   // Extract classrooms from the classroom_teachers join
-  const teacherClassrooms: Classroom[] = classroomTeachers?.map((ct: any) => ct.classrooms).filter(Boolean) || []
+  interface ClassroomTeacher {
+    classrooms: Classroom[]
+  }
+  
+  const teacherClassrooms: Classroom[] = classroomTeachers?.flatMap((ct: ClassroomTeacher) => ct.classrooms).filter(Boolean) || []
 
   // Get students in teacher's classrooms - updated to use the new student_classrooms table
   const { data: enrolledStudents } = await supabase
@@ -114,7 +113,14 @@ export default async function TeacherView() {
     .eq('role', 'student')
 
   // Extract unique students from enrolled students
-  const enrolledStudentList = enrolledStudents?.map((es: any) => es.profiles).filter(Boolean) || []
+  interface EnrolledStudent {
+    profiles: Array<{
+      id: string
+      full_name: string | null
+    }>
+  }
+  
+  const enrolledStudentList = enrolledStudents?.flatMap((es: EnrolledStudent) => es.profiles).filter(Boolean) || []
   
   // Calculate stats
   const totalStudents = new Set(enrolledStudentList?.map(s => s.id) || []).size

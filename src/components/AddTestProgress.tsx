@@ -18,7 +18,7 @@ export default function AddTestProgress() {
       const grade = Math.floor(Math.random() * 30) + 70 // 70-100
       const studentName = `Test Student ${Date.now()}`
       
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('progress')
         .insert([
           {

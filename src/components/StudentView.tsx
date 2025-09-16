@@ -119,7 +119,7 @@ export default async function StudentView() {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-200 mb-2">No Progress Reports Yet</h3>
-            <p className="text-gray-300">Your teachers haven't added any progress reports yet. Check back later!</p>
+            <p className="text-gray-300">Your teachers haven&apos;t added any progress reports yet. Check back later!</p>
           </div>
         </div>
       ) : (

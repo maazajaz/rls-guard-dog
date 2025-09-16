@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { mongoService } from '@/lib/mongodb'
-import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {

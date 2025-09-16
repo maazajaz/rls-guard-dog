@@ -71,7 +71,7 @@ export default function StudentAssignment({ students, teacherClassrooms }: Stude
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-yellow-300 mb-2">No Classrooms Assigned</h3>
-        <p className="text-yellow-200">You haven't been assigned to any classrooms yet. Contact your head teacher to get classroom assignments.</p>
+        <p className="text-yellow-200">You haven&apos;t been assigned to any classrooms yet. Contact your head teacher to get classroom assignments.</p>
       </div>
     )
   }

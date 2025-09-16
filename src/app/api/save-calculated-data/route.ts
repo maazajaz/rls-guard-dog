@@ -24,8 +24,25 @@ export async function POST(request: NextRequest) {
     const db = client.db('rls_guard_dog')
     const collection = db.collection('class_averages')
 
+    // Define type for calculated averages
+    interface CalculatedAverage {
+      classroom_id: string
+      classroom_name: string
+      school_id: string
+      average_grade: number
+      total_students: number
+      total_reports: number
+      last_updated: string
+      grade_distribution: {
+        excellent: number
+        good: number
+        satisfactory: number
+        needs_improvement: number
+      }
+    }
+
     // Prepare documents for MongoDB
-    const documents = calculated_averages.map((avg: any) => ({
+    const documents = calculated_averages.map((avg: CalculatedAverage) => ({
       classroom_id: avg.classroom_id,
       classroom_name: avg.classroom_name,
       school_id: avg.school_id,
