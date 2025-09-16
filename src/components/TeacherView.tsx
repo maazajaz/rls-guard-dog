@@ -3,6 +3,7 @@ import AddProgressForm from './AddProgressForm'
 import StudentAssignment from './StudentAssignment'
 import ClassAveragesSupabase from './ClassAveragesSupabase'
 import EnrollmentApproval from './EnrollmentApproval'
+import ClassAveragesManager from './ClassAveragesManager'
 
 type ProgressRecord = {
   id: string
@@ -228,6 +229,9 @@ export default async function TeacherView() {
         teacherId={user.id}
         classrooms={teacherClassrooms}
       />
+
+      {/* MongoDB Class Averages Manager */}
+      <ClassAveragesManager />
 
       {/* Student Assignment */}
       <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8">
