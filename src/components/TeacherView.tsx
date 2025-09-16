@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import AddProgressForm from './AddProgressForm'
 import StudentAssignment from './StudentAssignment'
 import ClassAveragesSupabase from './ClassAveragesSupabase'
+import EnrollmentApproval from './EnrollmentApproval'
 
 type ProgressRecord = {
   id: string
@@ -220,6 +221,12 @@ export default async function TeacherView() {
         schoolId={teacherProfile.school_id}
         classroomIds={teacherClassrooms.map(c => c.id)}
         showSchoolStats={false}
+      />
+
+      {/* Enrollment Approval */}
+      <EnrollmentApproval 
+        teacherId={user.id}
+        classrooms={teacherClassrooms}
       />
 
       {/* Student Assignment */}

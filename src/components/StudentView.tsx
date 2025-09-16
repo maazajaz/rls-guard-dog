@@ -1,4 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import StudentEnrollmentRequest from './StudentEnrollmentRequest'
 
 type ProgressReport = {
   id: string
@@ -10,40 +14,95 @@ type ProgressReport = {
   } | null
 }
 
-export default async function StudentView() {
-  const supabase = await createClient()
+export default function StudentView() {
+  const [progress, setProgress] = useState<ProgressReport[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [user, setUser] = useState<any>(null)
+  const [studentProfile, setStudentProfile] = useState<any>(null)
 
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    return <div className="text-red-600">Not authenticated</div>
-  }
+  const supabase = createClient()
 
-  // Fetch student's own progress reports
-  const { data: progress, error } = await supabase
-    .from('progress')
-    .select(`
-      id,
-      report_date,
-      grade,
-      feedback,
-      classrooms (
-        name
-      )
-    `)
-    .eq('student_id', user.id)
-    .order('report_date', { ascending: false })
-    .returns<ProgressReport[]>()
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Get current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        
+        if (userError || !user) {
+          setError('Not authenticated')
+          setLoading(false)
+          return
+        }
 
-  if (error) {
-    console.error('Error fetching progress:', error)
+        setUser(user)
+
+        // Get student's profile and school_id
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('school_id')
+          .eq('id', user.id)
+          .single()
+
+        if (profileError || !profile) {
+          setError('Profile not found')
+          setLoading(false)
+          return
+        }
+
+        setStudentProfile(profile)
+
+        // Fetch student's progress reports
+        const { data: progressData, error: progressError } = await supabase
+          .from('progress')
+          .select(`
+            id,
+            report_date,
+            grade,
+            feedback,
+            classrooms (
+              name
+            )
+          `)
+          .eq('student_id', user.id)
+          .order('report_date', { ascending: false })
+          .returns<ProgressReport[]>()
+
+        if (progressError) {
+          setError(`Could not fetch progress reports: ${progressError.message}`)
+        } else {
+          setProgress(progressData || [])
+        }
+
+        setLoading(false)
+      } catch (err) {
+        setError('An unexpected error occurred')
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  if (loading) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-700 font-medium">Could not fetch progress reports.</p>
-        <p className="text-red-600 text-sm mt-1">Error: {error.message}</p>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+        <span className="ml-3 text-white">Loading your dashboard...</span>
       </div>
     )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p className="text-red-700 font-medium">{error}</p>
+      </div>
+    )
+  }
+
+  if (!user || !studentProfile) {
+    return <div className="text-red-600">Authentication or profile data missing</div>
   }
 
   // Calculate average grade
@@ -174,6 +233,12 @@ export default async function StudentView() {
           </div>
         </div>
       )}
+
+      {/* Student Enrollment Request */}
+      <StudentEnrollmentRequest 
+        studentId={user.id}
+        schoolId={studentProfile.school_id}
+      />
     </div>
   )
 }
