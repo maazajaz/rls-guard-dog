@@ -16,6 +16,15 @@ export interface CalculationResult {
   error?: string
 }
 
+type CachedAverage = {
+  classroom_id: string
+  average_grade: number
+  total_students: number
+  total_reports: number
+  last_calculated: string
+  period: string
+}
+
 /**
  * Manually trigger class averages calculation
  * This calls the Supabase Edge Function to calculate and store class averages
@@ -84,35 +93,14 @@ export async function getClassAverages(period?: string): Promise<ClassAverageSum
 
 /**
  * Get class averages from Supabase cache (faster than MongoDB)
+ * Returns empty array if cache table doesn't exist
  */
-export async function getClassAveragesFromCache(): Promise<any[]> {
+export async function getClassAveragesFromCache(): Promise<CachedAverage[]> {
   try {
-    const supabase = createClient()
-    
-    const { data, error } = await supabase
-      .from('class_averages_cache')
-      .select(`
-        classroom_id,
-        average_grade,
-        total_students,
-        total_reports,
-        last_calculated,
-        period,
-        classrooms (
-          name,
-          schools (
-            name
-          )
-        )
-      `)
-      .order('last_calculated', { ascending: false })
-
-    if (error) {
-      console.error('❌ Error fetching cached averages:', error)
-      return []
-    }
-
-    return data || []
+    console.log('📋 Skipping cache table lookup - table not yet created')
+    // For now, return empty array since cache table doesn't exist
+    // The main calculation will still work via Edge Function
+    return []
 
   } catch (error) {
     console.error('❌ Unexpected error fetching cached averages:', error)

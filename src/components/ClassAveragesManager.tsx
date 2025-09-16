@@ -1,12 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { calculateClassAverages, getClassAveragesFromCache, ClassAverageSummary, CalculationResult } from '@/lib/classAverages'
+import { calculateClassAverages, getClassAveragesFromCache, CalculationResult } from '@/lib/classAverages'
+
+type CachedAverage = {
+  classroom_id: string
+  average_grade: number
+  total_students: number
+  total_reports: number
+  last_calculated: string
+  period: string
+}
 
 export default function ClassAveragesManager() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<CalculationResult | null>(null)
-  const [cachedAverages, setCachedAverages] = useState<any[]>([])
+  const [cachedAverages, setCachedAverages] = useState<CachedAverage[]>([])
   const [showAverages, setShowAverages] = useState(false)
 
   const handleCalculate = async () => {
@@ -175,7 +184,7 @@ export default function ClassAveragesManager() {
               <div key={index} className="bg-white/5 rounded-lg p-3 border border-white/10">
                 <div className="flex items-center justify-between mb-2">
                   <h5 className="text-white font-medium">
-                    {avg.classrooms?.name || 'Unknown Classroom'}
+                    Classroom: {avg.classroom_id.substring(0, 8)}...
                   </h5>
                   <span className="text-emerald-400 font-bold text-lg">
                     {avg.average_grade}%
@@ -186,9 +195,6 @@ export default function ClassAveragesManager() {
                   <p>Students: {avg.total_students} | Reports: {avg.total_reports}</p>
                   <p>Period: {avg.period}</p>
                   <p>Last Updated: {formatDate(avg.last_calculated)}</p>
-                  {avg.classrooms?.schools?.name && (
-                    <p>School: {avg.classrooms.schools.name}</p>
-                  )}
                 </div>
               </div>
             ))}

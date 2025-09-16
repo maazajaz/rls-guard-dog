@@ -24,59 +24,6 @@ interface ClassAverageResult {
   }
 }
 
-// Save to MongoDB via Next.js API endpoint (more reliable than deprecated Data API)
-async function saveToMongoDBViaAPI(documents: any[], period: string) {
-  try {
-    console.log('🔗 Saving to MongoDB via Next.js API endpoint')
-    console.log('📊 Documents to save:', documents.length)
-    console.log('📅 Period:', period)
-    
-    // Get the Next.js app URL from environment
-    const nextAppUrl = Deno.env.get('NEXT_APP_URL') || 'http://localhost:3000'
-    const apiEndpoint = `${nextAppUrl}/api/save-to-mongodb`
-    
-    console.log('🌐 Calling API endpoint:', apiEndpoint)
-    
-    const response = await fetch(apiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        documents: documents,
-        period: period
-      })
-    })
-    
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`API call failed: ${response.status} ${response.statusText} - ${errorText}`)
-    }
-    
-    const result = await response.json()
-    console.log('✅ MongoDB save successful:', result.message)
-    
-    return {
-      success: true,
-      insertedCount: result.insertedCount,
-      message: result.message
-    }
-    
-  } catch (error) {
-    console.error('❌ MongoDB API save failed:', error)
-    
-    // Fallback to simulation if API call fails
-    console.log('🔄 Falling back to simulation mode')
-    await new Promise(resolve => setTimeout(resolve, 100))
-    
-    return {
-      success: true,
-      insertedCount: documents.length,
-      message: 'Documents saved successfully (simulated due to API failure)'
-    }
-  }
-}
-
 serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -84,7 +31,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    console.log('🚀 Edge Function started: calculate-class-averages (HTTP MongoDB version)')
+    console.log('🚀 Edge Function started: calculate-class-averages')
     
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -97,11 +44,12 @@ serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     console.log('✅ Supabase client initialized')
 
-    // Get MongoDB URL from environment (for logging purposes)
+    // Get MongoDB URL from environment
     const mongoUrl = Deno.env.get('MONGODB_URL')
-    if (mongoUrl) {
-      console.log('🔗 MongoDB Connection configured:', mongoUrl.substring(0, 30) + '...')
+    if (!mongoUrl) {
+      throw new Error('MONGODB_URL environment variable not set')
     }
+    console.log('🔗 MongoDB Connection String:', mongoUrl.substring(0, 30) + '...')
 
     // Fetch progress data from Supabase
     console.log('📊 Fetching progress data...')
@@ -138,7 +86,7 @@ serve(async (req: Request) => {
       )
     }
 
-    console.log(`📈 Processing ${progressData.length} progress records...`)
+    console.log(`� Processing ${progressData.length} progress records...`)
 
     // Group by classroom and calculate averages
     const classroomGroups = new Map()
@@ -187,7 +135,7 @@ serve(async (req: Request) => {
       }
 
       results.push(result)
-      console.log(`📊 Calculated averages for ${classroom.name}: ${averageGrade}%`)
+      console.log(`� Calculated averages for ${classroom.name}: ${averageGrade}%`)
     }
 
     if (results.length === 0) {
@@ -226,15 +174,27 @@ serve(async (req: Request) => {
 
     console.log('✅ Prepared', mongoDocuments.length, 'documents for MongoDB collection: class_averages')
     
-    // Save to MongoDB using Next.js API endpoint
     let mongoSaved = false
     try {
-      console.log('💾 Attempting to save class averages to MongoDB via Next.js API...')
+      // Try to save to MongoDB
+      console.log('💾 Attempting to save', mongoDocuments.length, 'class averages to MongoDB...')
       
-      const saveResult = await saveToMongoDBViaAPI(mongoDocuments, currentPeriod)
-      mongoSaved = saveResult.success
+      const client = new MongoClient()
+      await client.connect(mongoUrl)
       
-      console.log('✅ MongoDB save result:', saveResult.message)
+      const db = client.database("rls_guard_dog")
+      const collection = db.collection("class_averages")
+      
+      // Delete existing records for current period to avoid duplicates
+      const deleteResult = await collection.deleteMany({ period: currentPeriod })
+      console.log('�️ Deleted', deleteResult.deletedCount, 'existing records for period', currentPeriod)
+      
+      // Insert new averages
+      const insertResult = await collection.insertMany(mongoDocuments)
+      console.log('✅ Successfully saved', insertResult.insertedIds.length, 'class averages to MongoDB')
+      
+      await client.close()
+      mongoSaved = true
       
     } catch (mongoError) {
       console.error('❌ MongoDB save failed:', mongoError)
@@ -276,3 +236,15 @@ serve(async (req: Request) => {
     )
   }
 })
+
+/* To deploy this function, run:
+ * supabase functions deploy calculate-class-averages
+ * 
+ * To invoke this function:
+ * curl -X POST 'https://your-project-ref.supabase.co/functions/v1/calculate-class-averages' \
+ *   -H 'Authorization: Bearer YOUR_SUPABASE_ANON_KEY' \
+ *   -H 'Content-Type: application/json'
+ * 
+ * Or call it from your app:
+ * const { data, error } = await supabase.functions.invoke('calculate-class-averages')
+ */
